@@ -23,7 +23,6 @@ public class TwitterTestController {
 	
 	public TwitterTestController() {
 		twit = new TwitterForce();
-		un = 'djcarroll@gmail.com';
 		authenticated = false; 
 	}
 	
