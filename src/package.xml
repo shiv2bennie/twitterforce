@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>TwiiterForceTest</members>
-        <members>TwitterController</members>
+        <members>TweetTest</members>
         <members>TwitterForce</members>
+        <members>TwitterTestController</members>
         <name>ApexClass</name>
     </types>
     <types>
-        <members>twitter</members>
+        <members>TwitterTweet</members>
+        <name>ApexComponent</name>
+    </types>
+    <types>
+        <members>TwitterTest</members>
         <name>ApexPage</name>
     </types>
-    <version>14.0</version>
+    <types>
+        <members>twitternav</members>
+        <name>StaticResource</name>
+    </types>
+    <version>15.0</version>
 </Package>
