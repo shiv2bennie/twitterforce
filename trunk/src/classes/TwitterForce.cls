@@ -9,7 +9,7 @@ public virtual class TwitterForce {
 		
 	public String username;
 	public String password;
-	public TwitterForce.User user; 
+	public TwitterUser user; 
 
 
 	public virtual class TwitterException extends Exception {}
@@ -46,6 +46,13 @@ public virtual class TwitterForce {
 		return r;
 	}
 	
+	protected virtual HttpRequest createAnonRequest(String method, String path) {
+    	HttpRequest req = new HttpRequest();
+     	req.setEndpoint(path);
+      	req.setMethod(method == null ? 'GET' : method);
+      	return req;
+	}
+	
 	protected virtual HttpRequest createRequest(String method, String path) {
     	HttpRequest req = new HttpRequest();
      	req.setEndpoint('http://twitter.com/' + path);
@@ -68,11 +75,11 @@ public virtual class TwitterForce {
     }
     
 	/** post an update, inReplyToStatusId can be null if this is not a reply */
-  	public TwitterForce.Status postUpdate(String msg, String inReplyToStatusId) {
+  	public TwitterStatus postUpdate(String msg, String inReplyToStatusId) {
   		return postTweet(new Map<String, String>{ 'status'=>msg, 'in_reply_to_status_id'=>inReplyToStatusId, 'source'=>'twitterforce' });
   	}
 
-	public TwitterForce.User checkCreds(String un, String pw) {
+	public TwitterUser checkCreds(String un, String pw) {
 		this.username = un;
 		this.password = pw;
 
@@ -90,46 +97,53 @@ public virtual class TwitterForce {
 		return parseRateLimitStatus(getReader(resp.getBody()));
 	} 
 	
-	public List<TwitterForce.Message> getReceivedMessages() {
+	public List<TwitterMessage> getReceivedMessages() {
 		HttpResponse resp = execute(createRequest('GET', 'direct_messages.xml'));
 		return parseMessages(getReader(resp.getBody()));
 	}
 
-	public List<TwitterForce.Message> getSentMessages() {
+	public List<TwitterMessage> getSentMessages() {
 		HttpResponse resp = execute(createRequest('GET', 'direct_messages/sent.xml'));
 		return parseMessages(getReader(resp.getBody()));
 	}
 
-	public TwitterForce.Message sendMessage(String msg, String recipientId) {
+	public TwitterMessage sendMessage(String msg, String recipientId) {
 		HttpResponse resp = execute(createRequest('POST', 'direct_messages/new.xml', 
 			new Map<String, String>{ 'user'=>recipientId, 'text'=>msg, 'source'=>'twitterforce' }));
 		return parseMessage(getReader(resp.getBody()));
 	}
 	
-	public List<TwitterForce.User> myFollowers() {
+	public List<TwitterUser> myFollowers() {
 		HttpResponse resp = execute(createRequest('GET', 'statuses/followers.xml'));
 		return parseUsers(getReader(resp.getBody()));
 	}
 	
-	public List<TwitterForce.Status> friendsTimeline() {
+	public List<TwitterStatus> friendsTimeline() {
 		HttpResponse resp = execute(createRequest('GET', 'statuses/friends_timeline.xml'));
 		return parseStatuses(getReader(resp.getBody()));
 	}
 
-	public List<TwitterForce.Status> getPublicStatuses() {
+	public List<TwitterStatus> getPublicStatuses() {
 		HttpResponse resp = execute(createRequest('GET', 'statuses/public_timeline.xml'));
 		return parseStatuses(getReader(resp.getBody()));
 	}
 
-	public TwitterForce.Status tweet(String status) {
+	public Atom.Feed wordSearch(String word) {
+		HttpResponse resp = execute(createAnonRequest('GET', ' http://search.twitter.com/search.atom?q=' + Encodingutil.urlEncode(word, 'UTF-8')));
+		Atom a = new Atom();
+		return a.parseFeed(getReader(resp.getBody()));
+	}
+	
+	public TwitterStatus tweet(String status) {
 		return postTweet(new Map<String, String>{ 'status'=>status, 'source'=>'twitterforce' });
 	}
 	
-	public TwitterForce.Status tweet(String status, String replyId) {
+	public TwitterStatus tweet(String status, String replyId) {
+		System.debug('\n\nTWEET: ' + 'Status is: ' + status);
 		return postTweet(new Map<String, String>{ 'status'=>status, 'in_reply_to_status_id'=>replyId, 'source'=>'twitterforce' });
 	}
 
-	public TwitterForce.Status postTweet(Map<String, String> updateParams) {
+	public TwitterStatus postTweet(Map<String, String> updateParams) {
 		HttpResponse resp = execute(createRequest('POST', 'statuses/update.xml', updateParams));
 		return parseStatus(getReader(resp.getBody()));
 	}
@@ -140,17 +154,19 @@ public virtual class TwitterForce {
     	 * it can't handle extended characters
     	*/
     	xml = xml.replaceAll('&#246;', 'o');	
-    	xml = xml.replaceAll('&#248;', 'o');	
+    	xml = xml.replaceAll('&#248;', 'o');
+		xml = xml.replaceAll('&#8220;', '"');
+		xml = xml.replaceAll('&#8221;', '"');
+    	xml = xml.replaceAll('&#[^;]*;', '');
     	
-    
     	XmlStreamReader r = new XmlStreamReader(xml);
 		r.setCoalescing(true);
-	    r.nextTag();
+	    r.nextTag(); 
     	return r;
     }
 
-	protected virtual List<TwitterForce.Status> parseStatuses(XmlStreamReader r) {
-		List<TwitterForce.Status> statuses = new List<TwitterForce.Status>();
+	protected virtual List<TwitterStatus> parseStatuses(XmlStreamReader r) {
+		List<TwitterStatus> statuses = new List<TwitterStatus>();
 		if (r.getLocalName().equals('statuses')) {
 			while (true) {
 				r.nextTag();
@@ -163,10 +179,10 @@ public virtual class TwitterForce {
 	}	
 	
 	/** parses a status structure, assumes the reader is on the status element.*/
-	private TwitterForce.Status parseStatus(XmlStreamReader r) {
-		TwitterForce.Status s = null; 
+	private TwitterStatus parseStatus(XmlStreamReader r) {
+		TwitterStatus s = null; 
 		if (r.getLocalName().equals('status')) {
-			s = new TwitterForce.Status();
+			s = new TwitterStatus();
 			while (true) {
 				r.nextTag();
 				if (r.getLocalName().equals('user')) {
@@ -227,8 +243,8 @@ public virtual class TwitterForce {
  		return s;
  	} 
  	
- 	protected virtual List<TwitterForce.Message> parseMessages(XmlStreamReader r) {
-		List<TwitterForce.Message> messages = new List<TwitterForce.Message>();
+ 	protected virtual List<TwitterMessage> parseMessages(XmlStreamReader r) {
+		List<TwitterMessage> messages = new List<TwitterMessage>();
 		if (r.getLocalName().equals('direct-messages')) {
 			while (true) {
 				r.nextTag();
@@ -240,8 +256,8 @@ public virtual class TwitterForce {
 		return messages;
  	} 
  	
- 	private List<TwitterForce.User> parseUsers(XmlStreamReader r) {
-		List<TwitterForce.User> users = new List<TwitterForce.User>();
+ 	private List<TwitterUser> parseUsers(XmlStreamReader r) {
+		List<TwitterUser> users = new List<TwitterUser>();
 		if (r.getLocalName().equals('users')) {
 			while (true) {
 				r.nextTag();
@@ -253,10 +269,10 @@ public virtual class TwitterForce {
 		return users;
  	} 
 
- 	private TwitterForce.Message parseMessage(XmlStreamReader r) {
- 		TwitterForce.Message m = null;
+ 	private TwitterMessage parseMessage(XmlStreamReader r) {
+ 		TwitterMessage m = null;
  		if (r.getLocalName().equals('direct_message')) {
- 			m = new TwitterForce.Message();
+ 			m = new TwitterMessage();
  			while (true) {
  				r.nextTag();
  				if (r.getLocalName().equals('direct_message')) {
@@ -292,13 +308,13 @@ public virtual class TwitterForce {
  		return m;
  	}
  	
-	protected virtual TwitterForce.User parseUser(XmlStreamReader r) {
-		TwitterForce.User u = null;
+	protected virtual TwitterUser parseUser(XmlStreamReader r) {
+		TwitterUser u = null;
 		if (r.getLocalName().equals('user') || 
 				r.getLocalName().equals('sender') || 
 				r.getLocalName().equals('recipient')) {
 					
-			u = new TwitterForce.User();
+			u = new TwitterUser();
 			String userName = '';
 			while (true) {
 			
@@ -336,7 +352,7 @@ public virtual class TwitterForce {
 					u.profile_image_url = c;
 				else if (n.equals('url'))
 					u.url = c;
-				else if (n.equals('protected'))
+				else if (n.equals('protected')) 
 					u.is_protected = c.equalsIgnoreCase('true');
 				else if (n.equals('followers_count'))
 					u.followers_count = Integer.valueOf(c);
@@ -382,7 +398,7 @@ public virtual class TwitterForce {
 		public Integer reset_time_in_seconds { get; set; }
 	}
 	
-	public class User {
+	/*public class User {
 	
 		public String Id { get; set; }
 		public String name { get; set; }
@@ -408,11 +424,11 @@ public virtual class TwitterForce {
 	  	public Boolean following { get; set; }
 	  	public Boolean notifications { get; set; }
 	  	public Integer statuses_count { get; set; }
-	  	public TwitterForce.Status status { get; set; }
+	  	public TwitterStatus status { get; set; }
 	  	
-	}	
+	}	*/
 
-	public class Status {
+	/*public class Status {
 	
 		public String created_at {get; set;}
 		public String Id { get; set; } 
@@ -424,9 +440,9 @@ public virtual class TwitterForce {
 		public Boolean favorited { get; set; }
 		public TwitterForce.User user { get; set; }
 		
-	}
+	}*/
 
-	public class Message {
+	/*public class Message {
 		public String id { get; set; }
 		public String sender_id { get; set; }
 		public String text { get; set; }
@@ -434,13 +450,13 @@ public virtual class TwitterForce {
 		public String created_at { get; set; }
 		public String sender_screen_name { get; set; }
 		public String recipient_screen_name { get; set; }
-		public TwitterForce.User sender { get; set; }
-		public TwitterForce.User recipient { get; set; }
+		public TwitterUser sender { get; set; }
+		public TwitterUser recipient { get; set; }
 		
 		public Message() {}
 		 
 		public Message(String text, String recipient) {
 			this.text = text;
 		}
-	}
+	}*/
 }
