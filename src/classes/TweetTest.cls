@@ -4,7 +4,7 @@ public class TweetTest {
 	 
 	public static void main() {
 		twitter = new TwitterForce();
-		TwitterUser u = twitter.checkCreds('djcarroll@gmail.com', 'Hailey24');
+		TwitterUser u = twitter.checkCreds('<username>', '<password>');
 		System.debug(twitter.wordSearch('"AT&T earnings"'));
 		//System.debug('\n\n' + twitter.getRateLimitStatus());
 		//System.debug('\n\n' + twitter.getReceivedMessages());
