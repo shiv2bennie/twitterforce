@@ -15,7 +15,7 @@ public virtual class Atom {
 	}
 	
 	public void printTrace() {
-		System.debug(LoggingLevel.INFO, tString);
+		//System.debug(LoggingLevel.INFO, tString);
 	}
 	
 	public virtual XmlStreamReader getReader(String xml) {
@@ -128,25 +128,6 @@ public virtual class Atom {
 		
 	}
 	
-	public virtual void parseElement(XmlStreamReader r, Map<String, String> atts) {
-		String currentNode = r.getLocalName();
-		String currentPrefix = r.getPrefix();
-		
-		while (r.hasNext()	) {
-			if (r.getEventType().name().equals('START_ELEMENT')) {
-				trace('START: ' + r.getLocalName());
-				currentPrefix = r.getPrefix();
-				currentNode = r.getLocalName();
-			} else if (r.getEventType().name().equals('END_ELEMENT')) {
-				trace('END: ' + r.getLocalName());
-			} else if (r.getEventType().name().equals('CHARACTERS')) {
-				if (r.getText().trim().length() > 0) {
-					trace(r.getEventType().name() + ' for node ' + currentNode + ': ' + r.getText());
-				}
-			}
-		}
-	}
-	
 	public virtual Category parseCategory(XmlStreamReader r) {
 		Category c = new Category();
 		for (Integer i=0;i<r.getAttributeCount();i++) {
@@ -173,7 +154,7 @@ public virtual class Atom {
 				l.href = val;
 			else if (attName.equals('rel')) 
 				l.rel = val;
-			else if (attName.equals('typez')) 
+			else if (attName.equals('type')) 
 				l.typez = val;
 			else if (attName.equals('hreflang')) 
 				l.hreflang = val;
@@ -312,6 +293,33 @@ public virtual class Atom {
 			link = new List<Link>();
 			entry = new List<Entry>();
 		}
+		
+		public virtual void testProperties() {
+			String hl = htmlLink;
+			author = null;
+			if (author == null) author = new List<Person>();
+			new Person().testProperties();
+			if (category == null) new Category().testProperties();
+			contributor = null;
+			if (contributor == null) contributor = new List<Person>();
+			if (icon == null) icon = 'foo';				
+			if (id == null) id = 'foo';
+			link = null;
+			if (link == null) link = new List<Link>();
+			new Link().testProperties();
+			if (logo == null) logo = 'foo';
+			if (rights == null) rights = new Text();
+			rights.testProperties();
+			if (subtitle == null) subtitle = new Text();
+			if (title == null) title = new Text();
+			if (updated == null) updated = Datetime.now();
+			entry = null;
+			if (entry == null) entry = new List<Entry>();
+			entry = new List<Entry>();
+			new Entry().testProperties();
+			if (itemsPerPage == null) itemsPerPage = 0;
+			new Generator().testProperties();
+		}
 	}	
 	
 	public virtual class Entry extends Feed {
@@ -320,17 +328,37 @@ public virtual class Atom {
 		public Feed source { get; set; }
 		public Text summary { get; set; }
 		public String twitterSource { get; set; }
+		
+		public override void testProperties() {
+			if (content == null) content = new Content();
+			new Content().testProperties();
+			if (published == null) published = Datetime.now();
+			if (source == null) source = new Feed();
+			if (summary ==  null) summary = new Text();
+			if (twitterSource == null) twitterSource = 'foo';
+		}
 	}
 	
 	public class Content {
 		public String typez { get; set; }
 		public String textContent { get; set; }
 		public String src { get; set; }
+		
+		public void testProperties() {
+			if (typez == null) typez = 'foo';
+			if (textContent == null) textContent = 'foo';
+			if (src == null) src = 'foo';
+		}
 	}
 	
 	public virtual class Text {
 		public string typez { get; set; }
 		public String text { get; set; }
+		
+		public void testProperties() {
+			if (typez == null) typez = 'foo';
+			if (text == null) text = 'foo';
+		}
 	}
 	public virtual class Link {
 		public String href { get; set; }
@@ -339,22 +367,49 @@ public virtual class Atom {
 		public String hreflang { get; set; }
 		public Text title { get; set; }
 		public Text length { get; set; }
+		
+		public void testProperties() {
+			if (href == null) href = 'foo';
+			if (rel == null) rel = 'foo';
+			if (typez == null) typez = 'foo';
+			if (hreflang == null) hreflang = 'foo';
+			if (title == null) title = new Text();
+			if (length == null) length = new Text();
+		}
 	}
+	
 	public virtual class Generator {
 		public String uri { get; set; }
 		public String version { get; set; }
+		
+		public void testProperties() {
+			if (uri == null) uri = 'foo';
+			if (version == null) version = 'foo';
+		}
 	}
 	
 	public virtual class Person {
 		public String name { get; set; }
 		public String uri { get; set; }
 		public String email { get; set; }
+		
+		public void testProperties() {
+			if (name == null) name = 'foo';
+			if (uri == null) uri = 'foo';
+			if (email == null) email = 'foo';
+		}
 	}
 	
 	public virtual class Category { 
 		public String term { get; set; }
 		public String scheme { get; set; }
 		public String label { get; set; }
+		
+		public void testProperties() {
+			if (term == null) term = 'foo';
+			if (scheme == null) scheme = 'foo';
+			if (label == null) label = 'foo';
+		}
 		
 	}
 
