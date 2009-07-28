@@ -6,15 +6,15 @@ public class TwitterController {
 	
 	public Boolean getNeedsLogin() {
 		return username == null || username.length() == 0;
-	}
+	} 
 	
 	public Boolean getHasLogin() {
 		return ! getNeedsLogin();
 	}
 	
-	public List<TwitterForce.Status> getFriendsTimeline() {
+	public List<TwitterStatus> getFriendsTimeline() {
 		if (getNeedsLogin())
-			return new TwitterForce.Status[0];
+			return new TwitterStatus[0];
 			
 		TwitterForce tf = new TwitterForce(username, password);
 		return tf.friendsTimeline();
@@ -23,7 +23,7 @@ public class TwitterController {
 	public void postUpdate() {
 		if (newUpdateText.length() > 0) {
 			TwitterForce tf = new TwitterForce(username, password);
-			TwitterForce.Status s = tf.postUpdate(newUpdateText, null);
+			TwitterStatus s = tf.postUpdate(newUpdateText, null);
 			System.debug(s);
 		}
 	}
