@@ -5,7 +5,7 @@ public virtual class TwitterForce {
 	//
 	// See Twitter REST API documentation
 	// http://apiwiki.twitter.com/REST+API+Documentation#update
-	//
+	// kjh
 		
 	public String username;
 	public String password;
