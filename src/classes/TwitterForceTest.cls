@@ -1,7 +1,7 @@
 /**
 * This class contains unit tests for validating the behavior of Apex classes
 * and triggers.
-*
+* 
 * Unit tests are class methods that verify whether a particular piece
 * of code is working properly. Unit test methods take no arguments,
 * commit no data to the database, and are flagged with the testMethod
@@ -18,7 +18,8 @@
 * the organization size limit for all Apex scripts.
 *
 * See the Apex Language Reference for more information about Testing and Code Coverage.
-*/
+*/ 
+
 @isTest
 private class TwitterForceTest {
 
@@ -31,11 +32,11 @@ private class TwitterForceTest {
 			return super.getReader(xml);
 		}
 		
-		public override List<Status> parseStatuses(XmlStreamReader x) {
+		public override List<TwitterStatus> parseStatuses(XmlStreamReader x) {
 			return super.parseStatuses(x);
 		} 
 		
-		public override List<TwitterForce.Message> parseMessages(XmlStreamReader x) {
+		public override List<TwitterMessage> parseMessages(XmlStreamReader x) {
 			return super.parseMessages(x);
 		}
 
@@ -43,7 +44,7 @@ private class TwitterForceTest {
 			return super.parseRateLimitStatus(x);
 		}
 		
-		public override TwitterForce.User parseUser(XmlStreamReader x) {
+		public override TwitterUser parseUser(XmlStreamReader x) {
 			return super.parseUser(x);
 		}
 	
@@ -67,13 +68,13 @@ private class TwitterForceTest {
 
 	static testMethod void testUserParser() { 
 		TwitterForceTester t = new TwitterForceTester('foo', 'bar');
-		TwitterForce.User user = t.parseUser(t.getReader(getUserCreds()));
+		TwitterUser user = t.parseUser(t.getReader(getUserCreds()));
 		
 	}
 
 	static testMethod void testMessageParser() { 
 		TwitterForceTester t = new TwitterForceTester('foo', 'bar');
-		List<TwitterForce.Message> messages = t.parseMessages(t.getReader(getMessages()));
+		List<TwitterMessage> messages = t.parseMessages(t.getReader(getMessages()));
 		
 	}
 
@@ -84,9 +85,9 @@ private class TwitterForceTest {
 	
 	static testMethod void testStatusesParser() {
 		TwitterForceTester t = new TwitterForceTester('foo','bar');
-		List<TwitterForce.Status> statuses = t.parseStatuses(t.getReader(getStatuses()));
+		List<TwitterStatus> statuses = t.parseStatuses(t.getReader(getStatuses()));
 		System.assertEquals(2, statuses.size());
-		TwitterForce.Status s = statuses[0];
+		TwitterStatus s = statuses[0];
 		System.assertEquals('Sun Nov 02 03:20:06 +0000 2008', s.created_at);
 		System.assertEquals('985929063', s.id);
 		System.assertEquals('@superfell not using twitter api yet from apex. show us what it can do!', s.text);
